@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace OpenAI\Exceptions;
 
-use Exception;
 use JsonException;
 
-final class UnserializableResponse extends Exception
+final class UnserializableResponse extends OpenAiException
 {
     /**
      * Creates a new Exception instance.

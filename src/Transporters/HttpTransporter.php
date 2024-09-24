@@ -10,6 +10,7 @@ use JsonException;
 use OpenAI\Contracts\TransporterContract;
 use OpenAI\Enums\Transporter\ContentType;
 use OpenAI\Exceptions\ErrorException;
+use OpenAI\Exceptions\OpenAiException;
 use OpenAI\Exceptions\TransporterException;
 use OpenAI\Exceptions\UnserializableResponse;
 use OpenAI\ValueObjects\Transporter\BaseUri;
@@ -47,6 +48,10 @@ final class HttpTransporter implements TransporterContract
         $request = $payload->toRequest($this->baseUri, $this->headers, $this->queryParams);
 
         $response = $this->sendRequest(fn (): \Psr\Http\Message\ResponseInterface => $this->client->sendRequest($request));
+
+        if (! $this->isSuccessfulResponse($response)) {
+            throw new OpenAiException(sprintf('Bad request - status code %d', $response->getStatusCode()));
+        }
 
         $contents = $response->getBody()->getContents();
 
@@ -111,7 +116,7 @@ final class HttpTransporter implements TransporterContract
 
     private function throwIfJsonError(ResponseInterface $response, string|ResponseInterface $contents): void
     {
-        if ($response->getStatusCode() < 400) {
+        if (! $this->isSuccessfulResponse($response)) {
             return;
         }
 
@@ -133,5 +138,10 @@ final class HttpTransporter implements TransporterContract
         } catch (JsonException $jsonException) {
             throw new UnserializableResponse($jsonException);
         }
+    }
+
+    private function isSuccessfulResponse(ResponseInterface $response): bool
+    {
+        return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
 }
