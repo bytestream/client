@@ -6,7 +6,7 @@ namespace OpenAI\Exceptions;
 
 use Exception;
 
-class ErrorException extends Exception
+class ErrorException extends Exception implements OpenAIThrowable
 {
     /**
      * Creates a new Exception instance.

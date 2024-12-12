@@ -4,7 +4,7 @@ namespace OpenAI\Exceptions;
 
 use Psr\Http\Message\RequestInterface;
 
-class APIError extends ErrorException
+class APIError extends ErrorException implements OpenAIThrowable
 {
     public function __construct(protected readonly RequestInterface $request, array $contents)
     {
