@@ -62,6 +62,8 @@ final class HttpTransporter implements TransporterContract
         $contents = $response->getBody()->getContents();
 
         if (str_contains($response->getHeaderLine('Content-Type'), ContentType::TEXT_PLAIN->value)) {
+            $this->throwOnErrorResponse($request, $response, ['message' => $contents, 'type' => null, 'code' => null]);
+
             return Response::from($contents, $response->getHeaders());
         }
 
@@ -144,8 +146,6 @@ final class HttpTransporter implements TransporterContract
             return;
         }
 
-        $statusCode = $response->getStatusCode();
-
         if ($contents instanceof ResponseInterface) {
             $contents = $contents->getBody()->getContents();
         }
@@ -156,18 +156,40 @@ final class HttpTransporter implements TransporterContract
 
             $error = $contentDecoded['error'];
 
-            throw match ($response->getStatusCode()) {
-                400 => new BadRequestError($request, $response, $error),
-                401 => new AuthenticationError($request, $response, $error),
-                403 => new PermissionDeniedError($request, $response, $error),
-                404 => new NotFoundError($request, $response, $error),
-                409 => new ConflictError($request, $response, $error),
-                422 => new UnprocessableEntityError($request, $response, $error),
-                429 => new RateLimitError($request, $response, $error),
-                default => new ErrorException($contentDecoded['error'], $statusCode),
-            };
+            $this->throwOnErrorResponse($request, $response, $error);
         } catch (JsonException $jsonException) {
             throw new UnserializableResponse($jsonException);
         }
+    }
+
+    /**
+     * @param array{message: string|array<int, string>, type: ?string, code: string|int|null} $error
+     * @throws NotFoundError
+     * @throws RateLimitError
+     * @throws AuthenticationError
+     * @throws UnserializableResponse
+     * @throws ErrorException
+     * @throws BadRequestError
+     * @throws UnprocessableEntityError
+     * @throws ConflictError
+     * @throws PermissionDeniedError
+     */
+    private function throwOnErrorResponse(RequestInterface $request, ResponseInterface $response, array $error): void
+    {
+        $statusCode = $response->getStatusCode();
+        if ($statusCode < 400) {
+            return;
+        }
+
+        throw match ($statusCode) {
+            400 => new BadRequestError($request, $response, $error),
+            401 => new AuthenticationError($request, $response, $error),
+            403 => new PermissionDeniedError($request, $response, $error),
+            404 => new NotFoundError($request, $response, $error),
+            409 => new ConflictError($request, $response, $error),
+            422 => new UnprocessableEntityError($request, $response, $error),
+            429 => new RateLimitError($request, $response, $error),
+            default => new ErrorException($error, $statusCode),
+        };
     }
 }
