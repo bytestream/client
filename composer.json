@@ -68,5 +68,10 @@
             "@test:type-coverage",
             "@test:unit"
         ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.10.x-dev"
+        }
     }
 }
