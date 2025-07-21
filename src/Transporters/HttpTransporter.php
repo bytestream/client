@@ -59,7 +59,7 @@ final class HttpTransporter implements TransporterContract
             $request
         );
 
-        $contents = $response->getBody()->getContents();
+        $contents = (string) $response->getBody();
 
         if (str_contains($response->getHeaderLine('Content-Type'), ContentType::TEXT_PLAIN->value)) {
             $this->throwOnErrorResponse($request, $response, ['message' => $contents, 'type' => null, 'code' => null]);
@@ -91,7 +91,7 @@ final class HttpTransporter implements TransporterContract
             $request
         );
 
-        $contents = $response->getBody()->getContents();
+        $contents = (string) $response->getBody();
 
         $this->throwIfJsonError($request, $response, $contents);
 
@@ -118,7 +118,7 @@ final class HttpTransporter implements TransporterContract
             return $callable();
         } catch (ClientExceptionInterface $clientException) {
             if ($clientException instanceof ClientException) {
-                $this->throwIfJsonError($request, $clientException->getResponse(), $clientException->getResponse()->getBody()->getContents());
+                $this->throwIfJsonError($request, $clientException->getResponse(), (string) $clientException->getResponse()->getBody());
             }
 
             throw new TransporterException($clientException);
@@ -147,7 +147,7 @@ final class HttpTransporter implements TransporterContract
         }
 
         if ($contents instanceof ResponseInterface) {
-            $contents = $contents->getBody()->getContents();
+            $contents = (string) $contents->getBody();
         }
 
         try {

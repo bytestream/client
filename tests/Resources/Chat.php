@@ -57,8 +57,8 @@ test('create throws an exception if stream option is true', function () {
 
 test('create streamed', function () {
     $response = new Response(
-        body: new Stream(chatCompletionStream()),
         headers: metaHeaders(),
+        body: new Stream(chatCompletionStream()),
     );
 
     $client = mockStreamClient('POST', 'chat/completions', [
@@ -98,6 +98,34 @@ test('create streamed', function () {
 
     expect($result->meta())
         ->toBeInstanceOf(MetaInformation::class);
+
+    foreach ($result->getIterator() as $response) {
+        expect($response)
+            ->toBeInstanceOf(CreateStreamedResponse::class);
+    }
+});
+
+test('handles ping messages in stream', function () {
+    $response = new Response(
+        headers: metaHeaders(),
+        body: new Stream(chatCompletionStreamPing()),
+    );
+
+    $client = mockStreamClient('POST', 'chat/completions', [
+        'model' => 'gpt-3.5-turbo',
+        'messages' => ['role' => 'user', 'content' => 'Hello!'],
+        'stream' => true,
+    ], $response);
+
+    $stream = $client->chat()->createStreamed([
+        'model' => 'gpt-3.5-turbo',
+        'messages' => ['role' => 'user', 'content' => 'Hello!'],
+    ]);
+
+    foreach ($stream as $response) {
+        expect($response)
+            ->toBeInstanceOf(CreateStreamedResponse::class);
+    }
 });
 
 test('handles error messages in stream', function () {

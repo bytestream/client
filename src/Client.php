@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenAI;
 
 use OpenAI\Contracts\ClientContract;
+use OpenAI\Contracts\Resources\RealtimeContract;
 use OpenAI\Contracts\Resources\ThreadsContract;
 use OpenAI\Contracts\Resources\VectorStoresContract;
 use OpenAI\Contracts\TransporterContract;
@@ -21,6 +22,8 @@ use OpenAI\Resources\FineTuning;
 use OpenAI\Resources\Images;
 use OpenAI\Resources\Models;
 use OpenAI\Resources\Moderations;
+use OpenAI\Resources\Realtime;
+use OpenAI\Resources\Responses;
 use OpenAI\Resources\Threads;
 use OpenAI\Resources\VectorStores;
 
@@ -32,6 +35,16 @@ final class Client implements ClientContract
     public function __construct(private readonly TransporterContract $transporter)
     {
         // ..
+    }
+
+    /**
+     * Manage responses to assist models with tasks.
+     *
+     * @see https://platform.openai.com/docs/api-reference/responses
+     */
+    public function responses(): Responses
+    {
+        return new Responses($this->transporter);
     }
 
     /**
@@ -155,6 +168,16 @@ final class Client implements ClientContract
     public function assistants(): Assistants
     {
         return new Assistants($this->transporter);
+    }
+
+    /**
+     * Communicate with a model in real time using WebRTC or WebSockets.
+     *
+     * @see https://platform.openai.com/docs/api-reference/realtime
+     */
+    public function realtime(): RealtimeContract
+    {
+        return new Realtime($this->transporter);
     }
 
     /**

@@ -13,7 +13,7 @@ trait Fakeable
      */
     public static function fake(array $override = [], ?MetaInformation $meta = null): static
     {
-        $class = str_replace('Responses\\', 'Testing\\Responses\\Fixtures\\', static::class).'Fixture';
+        $class = str_replace('OpenAI\\Responses\\', 'OpenAI\\Testing\\Responses\\Fixtures\\', static::class).'Fixture';
 
         return static::from(
             self::buildAttributes($class::ATTRIBUTES, $override),
@@ -29,9 +29,9 @@ trait Fakeable
         $new = [];
 
         foreach ($original as $key => $entry) {
-            $new[$key] = is_array($entry) ?
-                self::buildAttributes($entry, $override[$key] ?? []) :
-                $override[$key] ?? $entry;
+            $new[$key] = is_array($entry)
+                ? self::buildAttributes($entry, $override[$key] ?? [])
+                : $override[$key] ?? $entry;
             unset($override[$key]);
         }
 
